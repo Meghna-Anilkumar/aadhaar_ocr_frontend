@@ -1,25 +1,15 @@
-import { useEffect, useState } from 'react';
+import React from 'react';
+import { Route, Routes } from 'react-router-dom';
+import HomePage from './components/HomePage';
+import AadhaarUploadPage from './components/AadhaarUpload';
 
-function App() {
-  const [status, setStatus] = useState('');
-
-  useEffect(() => {
-    fetch('http://localhost:5000/ping', {
-      credentials: 'include', // because your backend has `credentials: true`
-    })
-      .then((res) => res.json())
-      .then((data) => setStatus(data.message))
-      .catch((err) => {
-        console.error('Error connecting to backend:', err);
-        setStatus('Backend not connected');
-      });
-  }, []);
-
+const App: React.FC = () => {
   return (
-    <div>
-      <h1>{status ? status : 'Connecting to backend...'}</h1>
-    </div>
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/upload" element={<AadhaarUploadPage />} />
+    </Routes>
   );
-}
+};
 
 export default App;
