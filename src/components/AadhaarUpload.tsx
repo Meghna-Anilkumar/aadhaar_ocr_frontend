@@ -7,6 +7,7 @@ const AadhaarUploadPage: React.FC = () => {
   const [backImage, setBackImage] = useState<File | null>(null);
   const [frontPreview, setFrontPreview] = useState<string | null>(null);
   const [backPreview, setBackPreview] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState<string | null>(null);
   const { ocrResult, loading, error, processImages, reset } = useOcr();
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, side: 'front' | 'back') => {
@@ -16,7 +17,7 @@ const AadhaarUploadPage: React.FC = () => {
       const validTypes = ['image/jpeg', 'image/png'];
       if (!validTypes.includes(file.type)) {
         console.log(`Invalid file type for ${side} image: ${file.type}`);
-        processImages(null, null); 
+        processImages(null, null);
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
@@ -41,7 +42,28 @@ const AadhaarUploadPage: React.FC = () => {
     setBackImage(null);
     setFrontPreview(null);
     setBackPreview(null);
+    setCopySuccess(null);
     reset();
+  };
+
+  const handleCopy = () => {
+    if (ocrResult) {
+      const textToCopy = `
+Aadhaar Card Details:
+Name: ${ocrResult.name}
+Aadhaar Number: ${ocrResult.aadhaarNumber}
+Date of Birth: ${ocrResult.dob}
+Address: ${ocrResult.address}
+      `.trim();
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        setCopySuccess('Copied to clipboard!');
+        setTimeout(() => setCopySuccess(null), 3000); // Clear message after 3 seconds
+      }).catch((err) => {
+        console.error('Failed to copy:', err);
+        setCopySuccess('Failed to copy. Please try again.');
+        setTimeout(() => setCopySuccess(null), 3000);
+      });
+    }
   };
 
   return (
@@ -53,6 +75,14 @@ const AadhaarUploadPage: React.FC = () => {
           
           {error && <Alert type="error" message={error} className="mb-4" />}
           
+          {copySuccess && (
+            <Alert
+              type="success"
+              message={copySuccess}
+              className="mb-4"
+            />
+          )}
+
           <Alert
             type="info"
             message={
@@ -162,7 +192,15 @@ const AadhaarUploadPage: React.FC = () => {
               type="success"
               message={
                 <div>
-                  <h2 className="text-lg font-semibold text-green-800 mb-2">Parsed Data</h2>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold text-green-800">Parsed Data</h2>
+                    <button
+                      onClick={handleCopy}
+                      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors text-sm"
+                    >
+                      Copy to Clipboard
+                    </button>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-600">Name:</p>
